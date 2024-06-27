@@ -22,6 +22,21 @@ This project includes three main components:
    - **File**: `sql_queries.py`
    - **Description**: Contains SQL queries for creating, dropping, and inserting into tables. Also includes the queries for copying data from S3 to Redshift staging tables.
 
+### ETL Pipeline
+
+```mermaid
+graph LR
+    S3[User Activity Logs and Song Metadata on S3]
+    S3 -->|Load| StagingTables[Staging Tables on Redshift]
+    StagingTables -->|Transform and Load| FactTable[Fact Table: songplays]
+    StagingTables -->|Transform and Load| DimensionTables[Dimension Tables]
+    
+    DimensionTables --> Users[users]
+    DimensionTables --> Songs[songs]
+    DimensionTables --> Artists[artists]
+    DimensionTables --> Time[time]
+```
+
 ### Table Design
 
 The data model follows a star schema with one fact table and several dimension tables:
