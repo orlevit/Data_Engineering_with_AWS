@@ -3,11 +3,10 @@ import logging
 
 from airflow.decorators import dag, task
 from airflow.secrets.metastore import MetastoreBackend
-from airflow.hooks.postgres_hook import PostgresHook
-from airflow.operators.postgres_operator import PostgresOperator
-from airflow.operators.python_operator import PythonOperator
-
-from udacity.common import sql_statements
+from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.providers.postgres.operators.postgres import PostgresOperator
+from airflow.operators.python import PythonOperator
+import sql_statements
 
 @dag(
     start_date=pendulum.now()
@@ -45,4 +44,5 @@ def load_data_to_redshift():
     create_table_task >> load_data
     load_data >> location_traffic_drop
     location_traffic_drop >> location_traffic_create
-    s3_to_redshift_dag = load_data_to_redshift()
+
+s3_to_redshift_dag = load_data_to_redshift()
