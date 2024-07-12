@@ -44,14 +44,12 @@ class StageToRedshiftOperator(BaseOperator):
 
         self.log.info("create table {}".format(self.table))
         redshift.run(self.create_script)
-        print('13'*100)
-        print("populate_script--->",self.populate_script)
+
         self.log.info("Copying data from S3 to Redshift")
         s3_path = "s3://{}/{}".format(self.s3_bucket, self.s3_data_loc)
-        json_path = "s3://{}/{}".format(self.s3_bucket, self.json_metadata)
         formatted_populate_script = self.populate_script.format(s3_path, 
                                                                 aws_connection.login,
                                                                 aws_connection.password,
-                                                                json_path,
+                                                                self.json_metadata,
                                                                 self.region)
         redshift.run(formatted_populate_script)

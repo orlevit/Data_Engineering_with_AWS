@@ -1,5 +1,8 @@
 class SqlQueries:
-
+    
+    # Apped or delete load to tables indication(0=append, 1=delete and load)
+    APPEND_OR_DELETE-LOAD = 1
+    
     # DROP TABLES
     staging_events_table_drop = "DROP TABLE IF EXISTS staging_events"
     staging_songs_table_drop = "DROP TABLE IF EXISTS staging_songs"
@@ -9,7 +12,7 @@ class SqlQueries:
     artist_table_drop = "DROP TABLE IF EXISTS artists"
     time_table_drop = "DROP TABLE IF EXISTS time"
 
-    # CREATE TABLESsa
+    # CREATE TABLES
     staging_events_table_create= ("""
         CREATE TABLE IF NOT EXISTS staging_events(
         artist VARCHAR,
@@ -48,7 +51,7 @@ class SqlQueries:
 
     songplay_table_create = ("""
         CREATE TABLE IF NOT EXISTS songplay (
-        songplay_id INTEGER NOT NULL PRIMARY KEY,
+        songplay_id VARCHAR NOT NULL PRIMARY KEY,
         start_time TIMESTAMP,
         user_id INTEGER,
         level VARCHAR,
@@ -111,8 +114,10 @@ class SqlQueries:
 
     # FINAL TABLES
 
+
     songplay_table_insert = ("""
         INSERT INTO songplay (
+            songplay_id,
             start_time,
             user_id ,
             level ,
@@ -121,19 +126,26 @@ class SqlQueries:
             session_id ,
             location ,
             user_agent)
+        
         SELECT
-            timestamp 'epoch' + se.ts/1000 * interval '1 second', 
-            se.userId,        
-            se.level,
-            ss.song_id,
-            ss.artist_id,
-            se.sessionId,  
-            se.userAgent        
-      
-        FROM staging_events se
-        JOIN staging_songs ss ON (se.artist == ss.artist_name AND se.song == ss.title)
+            md5(events.sessionid || events.start_time) songplay_id,
+            events.start_time, 
+            events.userid, 
+            events.level, 
+            songs.song_id, 
+            songs.artist_id, 
+            events.sessionid, 
+            events.location, 
+            events.useragent
+            FROM (SELECT TIMESTAMP 'epoch' + ts/1000 * interval '1 second' AS start_time, *
+        FROM staging_events
+        WHERE page='NextSong') events
+        LEFT JOIN staging_songs songs
+        ON events.song = songs.title
+            AND events.artist = songs.artist_name
+            AND events.length = songs.duration
     """)
-
+    
     user_table_insert = ("""
         INSERT INTO users (
             user_id,
@@ -142,13 +154,14 @@ class SqlQueries:
             gender,
             level)
             
-        SELECT
+        SELECT distinct
             se.userId,
             se.firstName,
             se.lastName,
             se.gender,
-                se.level
+            se.level
         FROM staging_events se
+        WHERE page='NextSong'        
     """)
 
     song_table_insert = ("""
@@ -160,7 +173,7 @@ class SqlQueries:
             duration)
             
         SELECT
-            ss.song_id
+            ss.song_id,
             ss.artist_name,
             ss.artist_id,
             ss.year,
@@ -180,7 +193,6 @@ class SqlQueries:
             ss.artist_id,
             ss.artist_name,
             ss.artist_location,
-            ss.artist_id,
             ss.artist_latitude,
             ss.artist_longitude
            
@@ -197,12 +209,19 @@ class SqlQueries:
             year,
             weekday)
          SELECT
-            EXTRACT(HOUR, start_time),
-            EXTRACT(DAY, start_time),
-            EXTRACT(WEEK, start_time),
-            EXTRACT(HOUR, start_time),
-            EXTRACT(MONTH, start_time),
-            EXTRACT(YEAR, start_time),
-            EXTRACT(WEEKDAY, start_time))       
-         FROM songplays 
+            start_time,
+            EXTRACT(HOUR FROM start_time),
+            EXTRACT(DAY FROM start_time),
+            EXTRACT(WEEK FROM start_time),
+            EXTRACT(MONTH FROM start_time),
+            EXTRACT(YEAR FROM start_time),
+            EXTRACT(WEEKDAY FROM start_time)       
+         FROM songplay 
     """)
+    
+    data_quality_tests = [
+        {
+            'test_sql': "SELECT COUNT(*) FROM {}",
+            'expected_result': -1
+        }
+    ]
