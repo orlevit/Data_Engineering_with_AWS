@@ -2,6 +2,12 @@
 
 This repository contains course details and projects from the **AWS Data Engineering** program on Udacity. This program focuses on designing data models, building data warehouses and data lakes, automating data pipelines, and managing massive datasets using AWS tools.
 
+## Table of Contents
+- [Course Overview](#course-overview)
+- [Tools and Technologies](#tools-and-technologies)
+- [Projects](#projects)
+- [Certificate](#certificate)
+
 ## Course Overview
 
 - **Data Modeling with Apache Cassandra**
@@ -49,3 +55,8 @@ This repository contains course details and projects from the **AWS Data Enginee
    - Create and manage data pipelines using Apache Airflow.
    - Implement data validation, DAGs, and data quality concepts.
    - Extend Airflow with plugins and refactor DAGs for production.
+
+## Certificate
+<p align="center">
+  <img src="certificate.jpg" width="500" height="400">
+</p>
